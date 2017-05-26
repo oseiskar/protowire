@@ -3,7 +3,7 @@
 import unittest
 
 from protowire import *
-from grpc_frame import encode_grpc_frame
+from grpc_frame import *
 
 class TestProtoWire(unittest.TestCase):
 
@@ -61,6 +61,10 @@ class TestProtoWire(unittest.TestCase):
         self.assertEquals(encode_message(1, "string", u"öäå☺"), '\x0a\x09\xc3\xb6\xc3\xa4\xc3\xa5\xe2\x98\xba')
         self.assertEquals(encode_message(1, "bytes", '\xc3\xb6\xc3\xa4\xc3\xa5\xe2\x98\xba'),
             '\x0a\x09\xc3\xb6\xc3\xa4\xc3\xa5\xe2\x98\xba')
+            
+    def test_big_endian(self):
+        self.assertEquals(decode_int_big_endian('\xde\xad\xbe\xef'), 0xdeadbeef)
+        self.assertEquals(encode_int_big_endian(0xdeadbeef, 32), '\xde\xad\xbe\xef'), 
 
     def test_encode_grpc_frame(self):
         self.assertEquals(encode_grpc_frame('\xde\xad\xbe\xef'), '\x00\x00\x00\x00\x04\xde\xad\xbe\xef')

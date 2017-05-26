@@ -22,7 +22,7 @@ Another example: `message Test2 { string b = 2; }` with `b = "testing"`:
 
         ./pw 2 string testing
 
-More complex examples can be composed using standard UNIX tool
+More complex examples can be composed using standard UNIX tools
 
         ./pw 1 int 150 | ./pw 3 bytes
         
@@ -34,8 +34,9 @@ or
 
 Wrap into a GRPC frame
 
-        ./pw 1 string "my query" | ./grpc_frame.py > request.bin
+        ./pw 1 string "my query" | ./grpc_frame.py wrap > request.bin
         nghttp -H ":method: POST" -H "Content-Type: application/grpc" -H "TE: trailers" \
             --data=request.bin \
-            http://localhost:8000/MyGrpcService/MyMethod > /tmp/output.bin
+            http://localhost:8000/MyGrpcService/MyMethod \
+            | ./grpc_frame.py unwrap > /tmp/output.bin
 
