@@ -1,1 +1,0 @@
-grpcio [grpc_client] >= 1.2
