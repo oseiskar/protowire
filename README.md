@@ -4,9 +4,10 @@
 
 Write protobuf messages from the command line:
 
-    ./pw [tag number] [data type] (value) > output.bin
+    ./pw (field number) [data type] (value) > output.bin
         
 where `data type` is one of the [protobuf datatypes](https://developers.google.com/protocol-buffers/docs/proto3#scalar) (or `int` = `int32` = `int64`). If `value` is not given, it is read from STDIN.
+The field number can be left out and defaults to 1.
 
 This enables creating protobuf messages for GRPC calls or other purposes without a protobuf compiler. The `pw` tool has no library dependencies (plain Python 2) and does not need the `.proto` files or any code generated from them.
 
@@ -28,11 +29,11 @@ Another example: `message Test2 { string b = 2; }` with `b = "testing"`:
 
 More complex examples (also from [here](https://developers.google.com/protocol-buffers/docs/encoding#embedded)) can be composed using standard UNIX tools
 
-    ./pw 1 int 150 | ./pw 3 bytes
+    ./pw int 150 | ./pw 3 bytes
         
 and
 
-    (./pw 1 fixed64 10 && ./pw 2 bool true) | ./pw 4 bytes
+    (./pw fixed64 10 && ./pw 2 bool true) | ./pw 4 bytes
 
 ## GRPC client
 
@@ -73,7 +74,7 @@ message ResponseCollection {
 
 An **`UnaryMethod`** call using a `RequestThing` with `query = "hello"` can be sent to a server running at `localhost:8000` as follows:
 
-    ./pw 1 string "hello" | \
+    ./pw string "hello" | \
         ./grpc_client.py localhost:8000/MyService/UnaryMethod \
         > response_item.bin
             
@@ -81,25 +82,25 @@ which saves the obtained `ResponseItem` protobuf the file `response_item.bin`.
 
 It is also possible to convert **`ServerStream`** responses to protobuf `ResponseCollection`s using the `-os`/`--stream_response` flag:
 
-    ./pw 1 string "hello" | \
+    ./pw string "hello" | \
         ./grpc_client.py localhost:8000/MyService/ServerStream -os \
         > response_collection.bin
 
 Similarly, **`ClientStream`** can be constructed from `RequestCollection`s with `-is`/`--stream_request`:
 
-    ./pw 1 string "singleton item" | ./pw 1 bytes | \
+    ./pw string "singleton item" | ./pw 1 bytes | \
         ./grpc_client.py localhost:8000/MyService/ClientStream -is \
         > response_item.bin
 
 The flags `-is` and `-os` can be used simultaneously for **`BidirectionalStream`**
 
-    ((./pw 1 string "first" | ./pw 1 bytes) && (./pw 1 string "second" | ./pw 1 bytes)) | \
+    ((./pw string "first" | ./pw bytes) && (./pw string "second" | ./pw bytes)) | \
         ./grpc_client.py localhost:8000/MyService/BidirectionalStream -is -os \
         > response_collection.bin
 
 In all `-os`-cases, there is also a `--tag` flag that can be used to change the field number in the response protobuf collection. For example `message ResponseCollection { repeated ResponseItem items = 2; }` would require:
 
-    ./pw 1 string "hello" | \
+    ./pw string "hello" | \
         ./grpc_client.py localhost:8000/MyService/ServerStream -os --tag 2 \
         > response_collection.bin
 

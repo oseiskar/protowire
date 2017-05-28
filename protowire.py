@@ -102,10 +102,19 @@ def encode_message(field_number, proto_type, value):
             
 if __name__ == '__main__':
     import argparse, sys
+    
+    # hack parameters to allow defaulting first argument to 1
+    field_number_present = True
+    field_number = 1
+    try:
+        len(sys.argv) < 2 or sys.argv[1][0] == '-' or int(sys.argv[1])
+    except:
+        field_number_present = False
 
     parser = argparse.ArgumentParser(description='Write protobuf messages from low-level input')
-    parser.add_argument('field_number', type=int)
-    parser.add_argument('data_type', choices=ENCODERS.keys())
+    if field_number_present:
+        parser.add_argument('field_number', type=int, default=field_number)
+    parser.add_argument('data_type', choices=ENCODERS.keys(), default='bytes')
     parser.add_argument('values', nargs='*')
 
     args = parser.parse_args()
@@ -116,7 +125,10 @@ if __name__ == '__main__':
         value = args.values[0]
     else:
         value = args.values
+        
+    if field_number_present:
+        field_number = args.field_number
 
-    msg = encode_message(args.field_number, args.data_type, value)
+    msg = encode_message(field_number, args.data_type, value)
     sys.stdout.write(msg)
 
