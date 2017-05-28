@@ -99,7 +99,7 @@ def encode_message(field_number, proto_type, value):
         payload = encoder.encode(value)
     
     return encode_key(field_number, wire_type) + payload
-
+            
 if __name__ == '__main__':
     import argparse, sys
 

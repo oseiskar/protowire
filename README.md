@@ -32,11 +32,13 @@ or
 
 ### GRPC frames
 
-Wrap into a GRPC frame
+Wrap into a GRPC frame and unwrap the response to normal protobuf:
 
         ./pw 1 string "my query" | ./grpc_frame.py wrap > request.bin
         nghttp -H ":method: POST" -H "Content-Type: application/grpc" -H "TE: trailers" \
             --data=request.bin \
             http://localhost:8000/MyGrpcService/MyMethod \
             | ./grpc_frame.py unwrap > /tmp/output.bin
+
+Notice that older versions of `nghttp` (like 0.6.4 in Debian Jessie) [cannot read STDIN](https://github.com/nghttp2/nghttp2/issues/133) with `-d -`.
 
