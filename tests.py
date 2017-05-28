@@ -72,6 +72,32 @@ class TestProtoWire(unittest.TestCase):
 
     def test_encode_grpc_frame(self):
         self.assertEquals(encode_grpc_frame('\xde\xad\xbe\xef'), '\x00\x00\x00\x00\x04\xde\xad\xbe\xef')
+        
+    def test_bash(self):
+    
+        import subprocess
+        
+        def checkBash(cmd, expected):
+            actual = subprocess.check_output(["bash", "-c", cmd])
+            self.assertEquals(actual, expected)
+        
+        checkBash(
+            """((./pw string hello | ./pw bytes) && (./pw 2 int 3 5 | ./pw bytes)) |
+            ./grpc_frame.py wrap --stream |
+            ./grpc_frame.py unwrap --stream | 
+            ./grpc_frame.py wrap |
+            ./grpc_frame.py unwrap""",
+            '\x0a\x07\x0a\x05\x68\x65\x6c\x6c\x6f\x0a\x04\x12\x02\x03\x05')
+            
+        checkBash(
+            """((./pw 3 bool true | ./pw bytes) && (./pw 2 int 3 5 | ./pw bytes)) |
+            ./grpc_frame.py wrap --stream""",
+            '\x00\x00\x00\x00\x02\x18\x01\x00\x00\x00\x00\x04\x12\x02\x03\x05')
+            
+        checkBash("./pw int 0", '')
+        checkBash("./pw string ''", '')
+        checkBash("./pw 2 int 0", '')
+            
 
 if __name__ == '__main__':
     unittest.main()
