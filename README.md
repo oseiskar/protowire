@@ -1,4 +1,6 @@
-# Protowire
+
+
+# Protowire [![Build Status](https://travis-ci.org/oseiskar/protowire.svg?branch=master)](https://travis-ci.org/oseiskar/protowire)
 
 Write protobuf messages from the command line:
 
