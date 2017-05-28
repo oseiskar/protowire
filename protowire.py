@@ -39,7 +39,7 @@ encode_zigzag_varint = lambda v: encode_varint(encode_zigzag(v))
 
 def define_encoders():
     class Encoder:
-        def __init__(self, wire_type, encoder_func, default_value=lambda x: x==0):
+        def __init__(self, wire_type, encoder_func, default_value=lambda x: int(x)==0):
             self.wire_type = wire_type
             self.encode = encoder_func
             self.default_value = default_value

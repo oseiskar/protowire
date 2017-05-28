@@ -14,6 +14,10 @@ class TestProtoWire(unittest.TestCase):
     def test_encode_message_varints(self):
         self.assertEquals(encode_message(1, "int32", 0), '')
         self.assertEquals(encode_message(1, "int64", 0), '')
+        self.assertEquals(encode_message(1, "int32", '0'), '')
+        self.assertEquals(encode_message(1, "int64", '0'), '')
+        self.assertEquals(encode_message(2, "int32", 0), '')
+        self.assertEquals(encode_message(3, "int64", 0), '')
         self.assertEquals(encode_message(1, "sint32", 0), '')
         self.assertEquals(encode_message(1, "sint64", 0), '')
         self.assertEquals(encode_message(1, "int32", 150), '\x08\x96\x01')
