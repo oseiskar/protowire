@@ -24,6 +24,15 @@ class TestProtoWire(unittest.TestCase):
         self.assertEquals(encode_message(3, "int64", 100), '\x18\x64')
         self.assertEquals(encode_message(4, "sint32", -100), '\x20\xC7\x01')
         self.assertEquals(encode_message(4, "sint64", -100), '\x20\xC7\x01')
+    
+    def test_encode_message_floats(self):
+        self.assertEquals(encode_message(1, "float", 0.0), '')
+        self.assertEquals(encode_message(2, "double", 0.0), '')
+        self.assertEquals(encode_message(10, "float", 3.141592), '\x55\xd8\x0f\x49\x40')
+        self.assertEquals(encode_message(11, "double", 3.141592), '\x59\x7a\x00\x8b\xfc\xfa\x21\x09\x40')
+        self.assertEquals(encode_message(10, "float", float('inf')), '\x55\x00\x00\x80\x7f')
+        self.assertEquals(encode_message(10, "float", float('nan')), '\x55\x00\x00\xc0\x7f')
+        self.assertEquals(encode_message(11, "double", '-inf'), '\x59\x00\x00\x00\x00\x00\x00\xf0\xff')
         
     def test_repeated_packed(self):
         self.assertEquals(encode_message(14, "int32", []), '')
@@ -68,7 +77,7 @@ class TestProtoWire(unittest.TestCase):
             
     def test_big_endian(self):
         self.assertEquals(decode_int_big_endian('\xde\xad\xbe\xef'), 0xdeadbeef)
-        self.assertEquals(encode_int_big_endian(0xdeadbeef, 32), '\xde\xad\xbe\xef'), 
+        self.assertEquals(encode_uint32_big_endian(0xdeadbeef), '\xde\xad\xbe\xef'), 
 
     def test_encode_grpc_frame(self):
         self.assertEquals(encode_grpc_frame('\xde\xad\xbe\xef'), '\x00\x00\x00\x00\x04\xde\xad\xbe\xef')

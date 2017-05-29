@@ -1,9 +1,10 @@
 #!/usr/bin/env python2
-from protowire import int2bytes, encode_int_little_endian, encode_message
+from protowire import int2bytes, encode_message
 from proto_decoding import *
+import struct
 
-def encode_int_big_endian(v, bits):
-    return encode_int_little_endian(v, bits)[::-1]
+def encode_uint32_big_endian(v):
+    return struct.pack('>I', v)
     
 def decode_int_big_endian(bytestr):
     v = 0
@@ -12,7 +13,7 @@ def decode_int_big_endian(bytestr):
     return v
 
 def encode_grpc_frame(msg):
-    return '\x00' + encode_int_big_endian(len(msg), 32) + msg
+    return '\x00' + encode_uint32_big_endian(len(msg)) + msg
     
 def unwrap_grpc_frame(in_stream):
     compressed_flag = in_stream.read(1)

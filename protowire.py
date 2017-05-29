@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+import struct
 
 def int2bytes(u):
     if not isinstance(u, list):
@@ -20,11 +21,10 @@ def encode_zigzag(value, bits):
     return (value << 1) ^ (value >> (bits-1))
     
 def encode_int_little_endian(value, n_bits):
-    a = []
-    for b in range(n_bits/8):
-        a.append(value & 0xff)
-        value = value >> 8
-    return int2bytes(a)
+    if n_bits == 32:
+        return struct.pack('<i', value)
+    else:
+        return struct.pack('<q', value)
 
 def encode_string(s):
     if isinstance(s, unicode):
@@ -32,6 +32,14 @@ def encode_string(s):
     else:
         b = s
     return encode_varint(len(b)) + b
+    
+def encode_float(f, bits):
+    if bits == 32:
+        return struct.pack('<f', f)
+    elif bits == 64:
+        return struct.pack('<d', f)
+    else:
+        assert(False)
 
 VARINT, FIXED64, LENGTH_DELIM, START_GROUP, END_GROUP, FIXED32 = range(6)
 
@@ -46,10 +54,13 @@ def define_encoders():
             
     bool_string_to_int = lambda s: int(s.lower() == 'true')
     empty_string = lambda s: len(s) == 0
+    zero_float = lambda f: float(f) == 0.0
             
     encoders = {
         "string": Encoder(LENGTH_DELIM, encode_string, empty_string),
         "bytes": Encoder(LENGTH_DELIM, encode_string, empty_string),
+        "float": Encoder(FIXED32, lambda v: encode_float(float(v), 32), zero_float),
+        "double": Encoder(FIXED64, lambda v: encode_float(float(v), 64), zero_float),
         "bool": Encoder(VARINT, lambda s: encode_varint(bool_string_to_int(s)), \
             default_value=lambda s: bool_string_to_int(s)==0)
     }
