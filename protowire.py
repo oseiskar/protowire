@@ -7,6 +7,8 @@ def int2bytes(u):
     return bytes(bytearray(u))
 
 def encode_varint(value):
+    if value < 0:
+      value += (1 << 64)
     bits = value & 0x7f
     value >>= 7
     bytes = []

@@ -24,6 +24,8 @@ class TestProtoWire(unittest.TestCase):
         self.assertEquals(encode_message(3, "int64", 100), '\x18\x64')
         self.assertEquals(encode_message(4, "sint32", -100), '\x20\xC7\x01')
         self.assertEquals(encode_message(4, "sint64", -100), '\x20\xC7\x01')
+        self.assertEquals(encode_message(2, "int32", -1), '\x10\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01')
+        self.assertEquals(encode_message(2, "int64", -1), '\x10\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01')
     
     def test_encode_message_floats(self):
         self.assertEquals(encode_message(1, "float", 0.0), '')
