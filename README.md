@@ -136,7 +136,3 @@ Notice that older versions of `nghttp` (like 0.6.4 in Debian Jessie) [cannot rea
  1. Install locally `pip install -e .[dev]`
  1. `./run-tests.sh`
  1. `deactivate` virtualenv
-
-### TODO
-
- - [ ] float datatypes
