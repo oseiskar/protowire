@@ -1,6 +1,6 @@
 
 
-# Protowire [![Build Status](https://travis-ci.org/oseiskar/protowire.svg?branch=master)](https://travis-ci.org/oseiskar/protowire)
+# Protowire [![Build Status](https://travis-ci.org/oseiskar/protowire.svg?branch=master)](https://travis-ci.org/oseiskar/protowire) [![PyPI](https://img.shields.io/pypi/v/protowire.svg)](https://pypi.python.org/pypi/protowire)
 
 Write protobuf messages from the command line:
 
@@ -10,6 +10,10 @@ where `data type` is one of the [protobuf datatypes](https://developers.google.c
 The field number can be left out and defaults to 1.
 
 This enables creating protobuf messages for GRPC calls or other purposes without a protobuf compiler. The `pw` tool has no library dependencies (plain Python 2) and does not need the `.proto` files or any code generated from them.
+
+### Installation
+
+    sudo pip install protowire
 
 ### Examples
 
@@ -37,7 +41,7 @@ and
 
 ## GRPC client
 
-This tool requires the `grpcio` Python package.
+This tool also requires the `grpcio` Python package (`pip install grpcio`)
 
     pw-grpc-client (-is) (-os) (--tag 1) host:port/path
 
