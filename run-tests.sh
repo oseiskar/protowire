@@ -6,4 +6,4 @@ set -v
 nosetests
 
 # linter
-pylint *.py
+pylint protowire

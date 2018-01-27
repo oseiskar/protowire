@@ -4,7 +4,7 @@
 
 Write protobuf messages from the command line:
 
-    ./pw (field number) [data type] (value) > output.bin
+    pw (field number) [data type] (value) > output.bin
 
 where `data type` is one of the [protobuf datatypes](https://developers.google.com/protocol-buffers/docs/proto3#scalar) (or `int` = `int32` = `int64`). If `value` is not given, it is read from STDIN.
 The field number can be left out and defaults to 1.
@@ -15,7 +15,7 @@ This enables creating protobuf messages for GRPC calls or other purposes without
 
 To write a protobuf message conforming to, e.g., `message Test1 { int32 a = 1; }` such that `a` has the value 150, write
 
-    ./pw 1 int32 150 > message.bin
+    pw 1 int32 150 > message.bin
 
 Then examine (cf. [official docs](https://developers.google.com/protocol-buffers/docs/encoding#simple)):
 
@@ -25,21 +25,21 @@ Then examine (cf. [official docs](https://developers.google.com/protocol-buffers
 
 Another example: `message Test2 { string b = 2; }` with `b = "testing"`:
 
-    ./pw 2 string testing
+    pw 2 string testing
 
 More complex examples (also from [here](https://developers.google.com/protocol-buffers/docs/encoding#embedded)) can be composed using standard UNIX tools
 
-    ./pw int 150 | ./pw 3 bytes
+    pw int 150 | pw 3 bytes
 
 and
 
-    (./pw fixed64 10 && ./pw 2 bool true) | ./pw 4 bytes
+    (pw fixed64 10 && pw 2 bool true) | pw 4 bytes
 
 ## GRPC client
 
 This tool requires the `grpcio` Python package.
 
-    ./grpc_client.py (-is) (-os) (--tag 1) host:port/path
+    pw-grpc-client (-is) (-os) (--tag 1) host:port/path
 
 Consider the following example:
 
@@ -74,34 +74,34 @@ message ResponseCollection {
 
 An **`UnaryMethod`** call using a `RequestThing` with `query = "hello"` can be sent to a server running at `localhost:8000` as follows:
 
-    ./pw string "hello" | \
-        ./grpc_client.py localhost:8000/MyService/UnaryMethod \
+    pw string "hello" | \
+        pw-grpc-client localhost:8000/MyService/UnaryMethod \
         > response_item.bin
 
 which saves the obtained `ResponseItem` protobuf the file `response_item.bin`.
 
 It is also possible to convert **`ServerStream`** responses to protobuf `ResponseCollection`s using the `-os`/`--stream_response` flag:
 
-    ./pw string "hello" | \
-        ./grpc_client.py localhost:8000/MyService/ServerStream -os \
+    pw string "hello" | \
+        pw-grpc-client localhost:8000/MyService/ServerStream -os \
         > response_collection.bin
 
 Similarly, **`ClientStream`** can be constructed from `RequestCollection`s with `-is`/`--stream_request`:
 
-    ./pw string "singleton item" | ./pw 1 bytes | \
-        ./grpc_client.py localhost:8000/MyService/ClientStream -is \
+    pw string "singleton item" | pw 1 bytes | \
+        pw-grpc-client localhost:8000/MyService/ClientStream -is \
         > response_item.bin
 
 The flags `-is` and `-os` can be used simultaneously for **`BidirectionalStream`**
 
-    ((./pw string "first" | ./pw bytes) && (./pw string "second" | ./pw bytes)) | \
-        ./grpc_client.py localhost:8000/MyService/BidirectionalStream -is -os \
+    ((pw string "first" | pw bytes) && (pw string "second" | pw bytes)) | \
+        pw-grpc-client localhost:8000/MyService/BidirectionalStream -is -os \
         > response_collection.bin
 
 In all `-os`-cases, there is also a `--tag` flag that can be used to change the field number in the response protobuf collection. For example `message ResponseCollection { repeated ResponseItem items = 2; }` would require:
 
-    ./pw string "hello" | \
-        ./grpc_client.py localhost:8000/MyService/ServerStream -os --tag 2 \
+    pw string "hello" | \
+        pw-grpc-client localhost:8000/MyService/ServerStream -os --tag 2 \
         > response_collection.bin
 
 ## GRPC frames for low-level communication
@@ -109,15 +109,15 @@ In all `-os`-cases, there is also a `--tag` flag that can be used to change the 
 This tool does not need any GRPC or protbuf packages, but can be combined with a HTTP/2 client like `nghttp` to make GRPC calls.
 Usage:
 
-    ./grpc_frame.py [wrap|unwrap] (--stream) (--tag 1)
+    pw-grpc-frame [wrap|unwrap] (--stream) (--tag 1)
 
 Wrap into a GRPC frame and unwrap the response to normal protobuf:
 
-    ./pw 1 string "my query" | ./grpc_frame.py wrap > request.bin
+    pw 1 string "my query" | pw-grpc-frame wrap > request.bin
     nghttp -H ":method: POST" -H "Content-Type: application/grpc" -H "TE: trailers" \
         --data=request.bin \
         http://localhost:8000/MyService/UnaryMethod \
-        | ./grpc_frame.py unwrap > /tmp/output.bin
+        | pw-grpc-frame unwrap > /tmp/output.bin
 
 The option `--stream` can be used with both wrap and unwrap to convert protobuf collections to GRPC streams like in the other GRPC client example. The `--tag` option can be used to change the field number in the "unwrapped" protobuf collection.
 
@@ -129,6 +129,7 @@ Notice that older versions of `nghttp` (like 0.6.4 in Debian Jessie) [cannot rea
     * Python 2: `virtualenv venvs/python2`
     * Python 3: `python3 -m venv venvs/python3`
  1. Activate virtualenv: `source venvs/pythonNNN/bin/activate`
+ 1. Install locally `pip install -e .[dev]`
  1. `./run-tests.sh`
  1. `deactivate` virtualenv
 

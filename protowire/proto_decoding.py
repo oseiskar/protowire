@@ -1,4 +1,4 @@
-from protowire import LENGTH_DELIM
+from .protobuf import LENGTH_DELIM
 
 def read_gen_blocking(f, n):
     left = n
