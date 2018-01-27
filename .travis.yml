@@ -1,6 +1,6 @@
 language: python
 python:
     - "2.7"
-script: "./run-tests.sh"
+script: "./run-tests-ci.sh"
 notifications:
   email: false
