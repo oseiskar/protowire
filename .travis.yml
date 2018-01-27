@@ -1,6 +1,6 @@
 language: python
 python:
     - "2.7"
-script: nosetests
+script: "./run-tests.sh"
 notifications:
   email: false

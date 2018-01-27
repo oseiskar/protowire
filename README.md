@@ -5,7 +5,7 @@
 Write protobuf messages from the command line:
 
     ./pw (field number) [data type] (value) > output.bin
-        
+
 where `data type` is one of the [protobuf datatypes](https://developers.google.com/protocol-buffers/docs/proto3#scalar) (or `int` = `int32` = `int64`). If `value` is not given, it is read from STDIN.
 The field number can be left out and defaults to 1.
 
@@ -18,7 +18,7 @@ To write a protobuf message conforming to, e.g., `message Test1 { int32 a = 1; }
     ./pw 1 int32 150 > message.bin
 
 Then examine (cf. [official docs](https://developers.google.com/protocol-buffers/docs/encoding#simple)):
-        
+
     $ hd /tmp/msg.bin
     00000000  08 96 01                                          |...|
     00000003
@@ -30,7 +30,7 @@ Another example: `message Test2 { string b = 2; }` with `b = "testing"`:
 More complex examples (also from [here](https://developers.google.com/protocol-buffers/docs/encoding#embedded)) can be composed using standard UNIX tools
 
     ./pw int 150 | ./pw 3 bytes
-        
+
 and
 
     (./pw fixed64 10 && ./pw 2 bool true) | ./pw 4 bytes
@@ -77,7 +77,7 @@ An **`UnaryMethod`** call using a `RequestThing` with `query = "hello"` can be s
     ./pw string "hello" | \
         ./grpc_client.py localhost:8000/MyService/UnaryMethod \
         > response_item.bin
-            
+
 which saves the obtained `ResponseItem` protobuf the file `response_item.bin`.
 
 It is also possible to convert **`ServerStream`** responses to protobuf `ResponseCollection`s using the `-os`/`--stream_response` flag:
@@ -123,3 +123,15 @@ The option `--stream` can be used with both wrap and unwrap to convert protobuf 
 
 Notice that older versions of `nghttp` (like 0.6.4 in Debian Jessie) [cannot read STDIN](https://github.com/nghttp2/nghttp2/issues/133) with `-d -`.
 
+## Development
+
+ 1. Create virtualenv
+    * Python 2: `virtualenv venvs/python2`
+    * Python 3: `python3 -m venv venvs/python3`
+ 1. Activate virtualenv: `source venvs/pythonNNN/bin/activate`
+ 1. `./run-tests.sh`
+ 1. `deactivate` virtualenv
+
+### TODO
+
+ - [ ] float datatypes

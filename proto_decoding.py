@@ -8,13 +8,9 @@ def read_gen_blocking(f, n):
         left -= len(c)
         if len(c) == 0:
             raise RuntimeError("unexpected EOF while reading %d bytes" % n)
-        
+
 def read_blocking(f, n):
     return ''.join([c for c in read_gen_blocking(f, n)])
-
-def pipe_blocking(in_stream, out_stream, n):
-    for c in read_gen_blocking(f, n):
-        out_stream.write(c)
 
 def read_varint(in_stream):
     value = 0
@@ -26,14 +22,14 @@ def read_varint(in_stream):
         value = (value << 7) | (bits & 0x7f)
         if (bits & 0x80) == 0:
             return value
-            
+
 def read_protobuf_message(in_stream):
     tag = read_varint(in_stream)
     wire_type = tag & 0x7
     field_number = tag >> 3
     if wire_type != LENGTH_DELIM:
         raise RuntimeError("unsupported wire type %d" % wire_type)
-    
+
     l = read_varint(in_stream)
     msg = read_blocking(in_stream, l)
     return (msg, field_number)

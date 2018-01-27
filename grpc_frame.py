@@ -1,11 +1,11 @@
 #!/usr/bin/env python2
-from protowire import int2bytes, encode_message
-from proto_decoding import *
+from protowire import encode_message
+from proto_decoding import read_blocking, read_gen_blocking, protobuf_stream_gen
 import struct
 
 def encode_uint32_big_endian(v):
     return struct.pack('>I', v)
-    
+
 def decode_int_big_endian(bytestr):
     v = 0
     for b in bytestr:
@@ -14,23 +14,23 @@ def decode_int_big_endian(bytestr):
 
 def encode_grpc_frame(msg):
     return '\x00' + encode_uint32_big_endian(len(msg)) + msg
-    
+
 def unwrap_grpc_frame(in_stream):
     compressed_flag = in_stream.read(1)
     if compressed_flag == '':
         raise EOFError('EOF')
-    
+
     assert(compressed_flag == '\x00')
     size = decode_int_big_endian(read_blocking(in_stream, 4))
     return read_gen_blocking(in_stream, size)
-    
+
 def pipe_unwrap_grpc_frame(in_stream, out_stream):
     for c in unwrap_grpc_frame(in_stream):
         out_stream.write(c)
 
 def read_grpc_frame(in_stream):
     return ''.join([c for c in unwrap_grpc_frame(in_stream)])
-    
+
 def wrap_grpc_stream(in_stream, out_stream):
     for msg in protobuf_stream_gen(in_stream):
         out_stream.write(encode_grpc_frame(msg))
@@ -43,7 +43,7 @@ def unwrap_grpc_stream(in_stream, out_stream, tag=1):
         except EOFError:
             break
 
-if __name__ == '__main__':
+def _main():
 
     import argparse, sys
 
@@ -54,10 +54,10 @@ if __name__ == '__main__':
     #parser.add_argument('--wire_type', type=int, default=LENGTH_DELIM)
 
     args = parser.parse_args()
-    
+
     in_stream = sys.stdin
     out_stream = sys.stdout
-    
+
     if args.command == 'wrap':
         if args.stream:
             wrap_grpc_stream(in_stream, out_stream)
@@ -69,3 +69,5 @@ if __name__ == '__main__':
         else:
             pipe_unwrap_grpc_frame(in_stream, out_stream)
 
+if __name__ == '__main__':
+    _main()
