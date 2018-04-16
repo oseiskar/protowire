@@ -14,12 +14,14 @@ def read_blocking(f, n):
 
 def read_varint(in_stream):
     value = 0
+    bitshift = 0
     while True:
         b = in_stream.read(1)
         if b == '':
             raise EOFError("EOF while reading varint")
         bits = ord(b)
-        value = (value << 7) | (bits & 0x7f)
+        value = value | ((bits & 0x7f) << bitshift)
+        bitshift += 7
         if (bits & 0x80) == 0:
             return value
 

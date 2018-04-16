@@ -107,6 +107,15 @@ class TestCommandLine(unittest.TestCase):
             pw-grpc-frame wrap --stream""",
             '\x00\x00\x00\x00\x02\x18\x01\x00\x00\x00\x00\x04\x12\x02\x03\x05')
 
+        longMsg = "a"*200
+
+        checkBash(
+            """pw string %s |
+            pw-grpc-frame wrap --stream |
+            pw-grpc-frame unwrap --stream |
+            wc -c""" % longMsg,
+            '203\n')
+
         checkBash("pw int 0", '')
         checkBash("pw string ''", '')
         checkBash("pw 2 int 0", '')
