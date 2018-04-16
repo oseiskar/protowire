@@ -3,10 +3,14 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
+def read(fname):
+    return open(path.join(here, fname)).read()
+
 setup(
     name='protowire',
-    version='1.0.1',
+    version='1.0.2',
     description='Write protobuf messages & GRPC calls from the command line without the proto files',
+    long_description=read('DESCRIPTION.rst'),
     url='https://github.com/oseiskar/protowire',
     author='Otto Seiskari',
 
