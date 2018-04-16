@@ -5,7 +5,7 @@ here = path.abspath(path.dirname(__file__))
 
 setup(
     name='protowire',
-    version='1.0.0',
+    version='1.0.1',
     description='Write protobuf messages & GRPC calls from the command line without the proto files',
     url='https://github.com/oseiskar/protowire',
     author='Otto Seiskari',
