@@ -10,14 +10,14 @@ def read_gen_blocking(f, n):
             raise RuntimeError("unexpected EOF while reading %d bytes" % n)
 
 def read_blocking(f, n):
-    return ''.join([c for c in read_gen_blocking(f, n)])
+    return b''.join([c for c in read_gen_blocking(f, n)])
 
 def read_varint(in_stream):
     value = 0
     bitshift = 0
     while True:
         b = in_stream.read(1)
-        if b == '':
+        if b == b'':
             raise EOFError("EOF while reading varint")
         bits = ord(b)
         value = value | ((bits & 0x7f) << bitshift)

@@ -4,6 +4,12 @@ import struct
 # to disalbe incorrect inconsistent-return-statements in encode_float
 # pylint: disable=R
 
+def is_string_like(s):
+    try:
+        return isinstance(s, unicode) # Python 2
+    except NameError:
+        return isinstance(s, str) # Python 3
+
 def int2bytes(u):
     if not isinstance(u, list):
         u = [u]
@@ -31,7 +37,7 @@ def encode_int_little_endian(value, n_bits):
     return struct.pack('<q', value)
 
 def encode_string(s):
-    if isinstance(s, unicode):
+    if is_string_like(s):
         b = s.encode('utf-8')
     else:
         b = s
@@ -95,17 +101,17 @@ def encode_message(field_number, proto_type, value):
 
     if isinstance(value, list):
         if len(value) == 0:
-            return ''
+            return b''
 
         wire_type = LENGTH_DELIM
         payload = []
         for v in value:
             payload.append(encoder.encode(v))
-        payload = "".join(payload)
+        payload = b''.join(payload)
         payload = encode_varint(len(payload)) + payload
     else:
         if encoder.default_value(value):
-            return ''
+            return b''
         wire_type = encoder.wire_type
         payload = encoder.encode(value)
 

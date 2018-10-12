@@ -1,4 +1,10 @@
 
+def ensure_binary(stream):
+    try:
+        return stream.buffer # Python 3
+    except AttributeError:
+        return stream # Python 2
+
 def pw():
     from .protobuf import ENCODERS, encode_message
     import argparse, sys
@@ -20,7 +26,7 @@ def pw():
     args = parser.parse_args()
 
     if len(args.values) == 0:
-        value = sys.stdin.read()
+        value = ensure_binary(sys.stdin).read()
     elif len(args.values) == 1:
         value = args.values[0]
     else:
@@ -30,7 +36,7 @@ def pw():
         field_number = args.field_number
 
     msg = encode_message(field_number, args.data_type, value)
-    sys.stdout.write(msg)
+    ensure_binary(sys.stdout).write(msg)
 
 
 def grpc_frame():
@@ -47,8 +53,8 @@ def grpc_frame():
 
     args = parser.parse_args()
 
-    in_stream = sys.stdin
-    out_stream = sys.stdout
+    in_stream = ensure_binary(sys.stdin)
+    out_stream = ensure_binary(sys.stdout)
 
     if args.command == 'wrap':
         if args.stream:
@@ -110,6 +116,6 @@ def grpc_client():
 
     import sys
     args = parse_args()
-    in_stream = sys.stdin
-    out_stream = sys.stdout
+    in_stream = ensure_binary(sys.stdin)
+    out_stream = ensure_binary(sys.stdout)
     client(in_stream, out_stream, args)
