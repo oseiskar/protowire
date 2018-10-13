@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name='protowire',
-    version='1.0.2',
+    version='1.1.0',
     description='Write protobuf messages & GRPC calls from the command line without the proto files',
     long_description=read('DESCRIPTION.rst'),
     url='https://github.com/oseiskar/protowire',
@@ -30,7 +30,9 @@ setup(
         'License :: OSI Approved :: MIT License',
 
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7'
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6'
     ],
     keywords='grpc protobuf commandline cli',
     packages=find_packages(exclude=['contrib', 'doc', 'tests']),
@@ -48,8 +50,7 @@ setup(
     # for example:
     # $ pip install -e .[dev,test]
     extras_require={
-        'dev': ['check-manifest'],
+        'dev': ['nose', 'pylint', 'check-manifest'],
         'grpc': ['grcpio'],
-        'test': ['nose']
     }
 )
