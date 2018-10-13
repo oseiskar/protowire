@@ -9,15 +9,19 @@ matrix:
           python: nightly
         - os: osx
           language: generic
+          name: Python 3
+          before_install:
+            - pip install virtualenv
+            - virtualenv venv -p python3
+            - source venv/bin/activate
           env: PYTHON=python
         - os: osx
           language: generic
-          env: PYTHON=python3
-# Perform the manual steps on osx to install python3 and activate venv
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pip install virtualenv; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then virtualenv venv -p $PYTHON; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then source venv/bin/activate; fi
+          name: System Python (2.7)
+          before_install:
+            - pip install virtualenv
+            - virtualenv venv -p python
+            - source venv/bin/activate
 script: "./run-tests-ci.sh"
 notifications:
   email: false
