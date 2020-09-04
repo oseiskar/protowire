@@ -1,4 +1,4 @@
-from .protobuf import LENGTH_DELIM
+from .wire_type import VARINT, FIXED64, LENGTH_DELIM, FIXED32
 
 def read_gen_blocking(f, n):
     left = n
@@ -29,17 +29,32 @@ def read_protobuf_message(in_stream):
     tag = read_varint(in_stream)
     wire_type = tag & 0x7
     field_number = tag >> 3
-    if wire_type != LENGTH_DELIM:
+    if wire_type == LENGTH_DELIM:
+        l = read_varint(in_stream)
+        msg = read_blocking(in_stream, l)
+    elif wire_type == VARINT:
+        msg = read_varint(in_stream)
+    elif wire_type == FIXED32:
+        msg = read_blocking(in_stream, 4)
+    elif wire_type == FIXED64:
+        msg = read_blocking(in_stream, 8)
+    else:
         raise RuntimeError("unsupported wire type %d" % wire_type)
+    return (msg, field_number, wire_type)
 
-    l = read_varint(in_stream)
-    msg = read_blocking(in_stream, l)
-    return (msg, field_number)
-
-def protobuf_stream_gen(in_stream):
+def decode_stream(in_stream):
     while True:
         try:
-            msg, _ = read_protobuf_message(in_stream)
-            yield msg
+            yield read_protobuf_message(in_stream)
         except EOFError:
             break
+
+def decode_string(msg_string):
+    from io import BytesIO
+    in_stream = BytesIO(msg_string)
+    return list(decode_stream(in_stream))
+
+# simple stream generator, assumes LENGTH_DELIM wire_tyep, ignores fields
+def protobuf_stream_gen(in_stream):
+    for entry in decode_stream(in_stream):
+        yield entry[0]

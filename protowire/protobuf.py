@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 import struct
 
+from .wire_type import VARINT, FIXED64, LENGTH_DELIM, FIXED32
+
 # to disalbe incorrect inconsistent-return-statements in encode_float
 # pylint: disable=R
 
@@ -50,8 +52,6 @@ def encode_float(f, bits):
         return struct.pack('<d', f)
     else:
         assert(False)
-
-VARINT, FIXED64, LENGTH_DELIM, START_GROUP, END_GROUP, FIXED32 = range(6)
 
 def define_encoders():
     class Encoder:
