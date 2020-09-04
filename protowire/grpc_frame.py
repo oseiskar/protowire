@@ -33,7 +33,7 @@ def pipe_unwrap_grpc_frame(in_stream, out_stream):
         out_stream.write(c)
 
 def read_grpc_frame(in_stream):
-    return b''.join([c for c in unwrap_grpc_frame(in_stream)])
+    return b''.join(unwrap_grpc_frame(in_stream))
 
 def wrap_grpc_stream(in_stream, out_stream):
     for msg in protobuf_stream_gen(in_stream):
