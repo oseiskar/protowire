@@ -3,8 +3,8 @@
 import unittest
 
 import protowire.wire_type
-from protowire.proto_decoding import decode_string
-from protowire.protobuf import encode_message, encode_varint
+from protowire.proto_decoding import parse_string, decode_field, decode_zigzag
+from protowire.protobuf import encode_message, encode_varint, encode_zigzag
 from protowire.grpc_frame import encode_grpc_frame, \
     encode_uint32_big_endian, decode_int_big_endian
 
@@ -87,19 +87,22 @@ class TestUnits(unittest.TestCase):
     def test_encode_grpc_frame(self):
         self.assertEqual(encode_grpc_frame(b'\xde\xad\xbe\xef'), b'\x00\x00\x00\x00\x04\xde\xad\xbe\xef')
 
-    def test_decode_strings(self):
-        messages = decode_string(b'\x0A\x06hello!\x39\xAE\xFA\x90\x14\x00\x00\x00\x00\x18\x64\x45\x9C\xFF\xFF\xFF')
-        self.assertEquals(len(messages), 4)
+    def test_parse_strings(self):
+        messages = parse_string(b'\x0A\x06hello!\x39\xAE\xFA\x90\x14\x00\x00\x00\x00\x18\x64\x45\x9C\xFF\xFF\xFF\x55\xd8\x0f\x49\x40')
+        self.assertEquals(len(messages), 5)
 
         msg, field, wire = messages[0]
         self.assertEquals(field, 1)
         self.assertEquals(msg, b'hello!')
         self.assertEquals(wire, protowire.wire_type.LENGTH_DELIM)
+        self.assertEquals(decode_field(msg, 'string'), u'hello!')
+        self.assertEquals(decode_field(msg, 'bytes'), b'hello!')
 
         msg, field, wire = messages[1]
         self.assertEquals(field, 7)
         self.assertEquals(msg, b'\xAE\xFA\x90\x14\x00\x00\x00\x00')
         self.assertEquals(wire, protowire.wire_type.FIXED64)
+        self.assertEquals(decode_field(msg, 'fixed64'), 345045678)
 
         msg, field, wire = messages[2]
         self.assertEquals(field, 3)
@@ -110,6 +113,29 @@ class TestUnits(unittest.TestCase):
         self.assertEquals(field, 8)
         self.assertEquals(msg, b'\x9C\xFF\xFF\xFF')
         self.assertEquals(wire, protowire.wire_type.FIXED32)
+        self.assertEquals(decode_field(msg, 'sfixed32'), -100)
+
+        msg, field, wire = messages[4]
+        self.assertEquals(field, 10)
+        self.assertEquals(msg, b'\xd8\x0f\x49\x40')
+        self.assertEquals(wire, protowire.wire_type.FIXED32)
+        self.assertLess(abs(decode_field(msg, 'float') - 3.141592), 1e-7)
+
+    def test_zigzag(self):
+        self.assertEqual(encode_zigzag(2147483647, 32), 4294967294)
+        self.assertEqual(decode_zigzag(4294967294), 2147483647)
+        self.assertEqual(encode_zigzag(-1, 64), 1)
+        self.assertEqual(encode_zigzag(2, 32), 4)
+        self.assertEqual(decode_zigzag(1), -1)
+        self.assertEqual(decode_zigzag(4), 2)
+        self.assertEqual(decode_zigzag(3), -2)
+
+    def test_signed(self):
+        self.assertEqual(decode_field(b'\xFF\xFF\xFF\xFF', 'sfixed32'), -1)
+        self.assertEqual(decode_field(b'\xFF\xFF\xFF\xFF', 'fixed32'), 0xffffffff)
+        self.assertEqual(decode_field(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF', 'sfixed64'), -1)
+        self.assertEqual(decode_field(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF', 'fixed64'), 0xffffffffffffffff)
+
 
 
 class TestCommandLine(unittest.TestCase):
