@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name='protowire',
-    version='1.1.0',
+    version='1.2.0',
     description='Write protobuf messages & GRPC calls from the command line without the proto files',
     long_description=read('DESCRIPTION.rst'),
     url='https://github.com/oseiskar/protowire',
@@ -42,6 +42,7 @@ setup(
             'pw=protowire.commandline:pw',
             'pw-grpc-frame=protowire.commandline:grpc_frame',
             'pw-grpc-client=protowire.commandline:grpc_client',
+            'pw-decode=protowire.commandline:pw_decode'
         ],
     },
 

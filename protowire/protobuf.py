@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 import struct
 
+from .wire_type import VARINT, FIXED64, LENGTH_DELIM, FIXED32
+
 # to disalbe incorrect inconsistent-return-statements in encode_float
 # pylint: disable=R
 
@@ -31,10 +33,18 @@ def encode_varint(value):
 def encode_zigzag(value, bits):
     return (value << 1) ^ (value >> (bits-1))
 
-def encode_int_little_endian(value, n_bits):
+def get_python_int_struct_fmt(n_bits, signed):
     if n_bits == 32:
-        return struct.pack('<i', value)
-    return struct.pack('<q', value)
+        if signed:
+            return '<i'
+        return '<I'
+    else:
+        if signed:
+            return '<q'
+        return '<Q'
+
+def encode_int_little_endian(value, n_bits, signed=True):
+    return struct.pack(get_python_int_struct_fmt(n_bits, signed), value)
 
 def encode_string(s):
     if is_string_like(s):
@@ -50,8 +60,6 @@ def encode_float(f, bits):
         return struct.pack('<d', f)
     else:
         assert(False)
-
-VARINT, FIXED64, LENGTH_DELIM, START_GROUP, END_GROUP, FIXED32 = range(6)
 
 def define_encoders():
     class Encoder:
@@ -79,10 +87,10 @@ def define_encoders():
         "int64": Encoder(VARINT, encode_varint),
         "sint32": Encoder(VARINT, lambda v: encode_varint(encode_zigzag(v, 32))),
         "sint64": Encoder(VARINT, lambda v: encode_varint(encode_zigzag(v, 64))),
-        "fixed32": Encoder(FIXED32, lambda v: encode_int_little_endian(v, 32)),
-        "fixed64": Encoder(FIXED64, lambda v: encode_int_little_endian(v, 64)),
-        "sfixed32": Encoder(FIXED32, lambda v: encode_int_little_endian(v, 32)),
-        "sfixed64": Encoder(FIXED64, lambda v: encode_int_little_endian(v, 64)),
+        "fixed32": Encoder(FIXED32, lambda v: encode_int_little_endian(v, 32, signed=False)),
+        "fixed64": Encoder(FIXED64, lambda v: encode_int_little_endian(v, 64, signed=False)),
+        "sfixed32": Encoder(FIXED32, lambda v: encode_int_little_endian(v, 32, signed=True)),
+        "sfixed64": Encoder(FIXED64, lambda v: encode_int_little_endian(v, 64, signed=True)),
     }
 
     for t, e in int_encoders.items():

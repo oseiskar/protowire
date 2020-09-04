@@ -119,3 +119,20 @@ def grpc_client():
     in_stream = ensure_binary(sys.stdin)
     out_stream = ensure_binary(sys.stdout)
     client(in_stream, out_stream, args)
+
+def pw_decode():
+    import json, sys
+    from .proto_decoding import parse_stream_with_spec, parse_spec
+
+    def parse_args():
+        import argparse
+        parser = argparse.ArgumentParser(description='Parse protobuf messages with minimal spec')
+        parser.add_argument('spec', help="For example: 2:string,3:{2:float,4:[1:sfixed32]}")
+        parser.add_argument('--pretty', action='store_true')
+        return parser.parse_args()
+
+    args = parse_args()
+    parsed = parse_stream_with_spec(ensure_binary(sys.stdin), parse_spec(args.spec))
+    opts = { 'sort_keys': True }
+    if args.pretty: opts['indent'] = 2
+    print(json.dumps(parsed, **opts))
