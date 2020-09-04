@@ -116,14 +116,11 @@ def decode_field(value_bytes, protobuf_type):
     return DECODERS[protobuf_type](value_bytes)
 
 def parse_stream_with_spec(in_stream, spec):
-    if str(spec) in DECODERS:
-        return decode_field(in_stream.read(), spec)
-
     result = {}
     def decode_msg(msg, field, wire_type, decoder):
         if str(decoder) in DECODERS:
             if WIRE_TYPES[decoder] != wire_type:
-                raise RuntimeError("invalid wire type %d for field %d" % (wire_type, field))
+                raise RuntimeError("invalid wire type %d for field %s" % (wire_type, field))
             return decode_field(msg, decoder)
         if isinstance(decoder, list):
             # To Do: support packed repeated fields
@@ -148,6 +145,8 @@ def parse_stream_with_spec(in_stream, spec):
     return result
 
 def parse_bytes_with_spec(string, spec):
+    if str(spec) in DECODERS:
+        return decode_field(string, spec)
     in_stream = BytesIO(string)
     return parse_stream_with_spec(in_stream, spec)
 
