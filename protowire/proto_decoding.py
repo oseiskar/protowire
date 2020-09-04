@@ -43,7 +43,7 @@ def read_protobuf_message(in_stream):
     elif wire_type == FIXED64:
         msg = read_blocking(in_stream, 8)
     else:
-        raise RuntimeError("unsupported wire type %d" % wire_type)
+        raise RuntimeError("unsupported wire type %d with field %d" % (wire_type, field_number))
     return (msg, field_number, wire_type)
 
 def parse_stream(in_stream):
