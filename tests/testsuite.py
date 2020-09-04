@@ -3,7 +3,7 @@
 import unittest
 
 import protowire.wire_type
-from protowire.proto_decoding import parse_string, decode_field, decode_zigzag
+from protowire.proto_decoding import parse_bytes, decode_field, decode_zigzag, parse_bytes_with_spec, parse_spec
 from protowire.protobuf import encode_message, encode_varint, encode_zigzag
 from protowire.grpc_frame import encode_grpc_frame, \
     encode_uint32_big_endian, decode_int_big_endian
@@ -87,8 +87,8 @@ class TestUnits(unittest.TestCase):
     def test_encode_grpc_frame(self):
         self.assertEqual(encode_grpc_frame(b'\xde\xad\xbe\xef'), b'\x00\x00\x00\x00\x04\xde\xad\xbe\xef')
 
-    def test_parse_strings(self):
-        messages = parse_string(b'\x0A\x06hello!\x39\xAE\xFA\x90\x14\x00\x00\x00\x00\x18\x64\x45\x9C\xFF\xFF\xFF\x55\xd8\x0f\x49\x40')
+    def test_parse_bytess(self):
+        messages = parse_bytes(b'\x0A\x06hello!\x39\xAE\xFA\x90\x14\x00\x00\x00\x00\x18\x64\x45\x9C\xFF\xFF\xFF\x55\xd8\x0f\x49\x40')
         self.assertEquals(len(messages), 5)
 
         msg, field, wire = messages[0]
@@ -97,6 +97,7 @@ class TestUnits(unittest.TestCase):
         self.assertEquals(wire, protowire.wire_type.LENGTH_DELIM)
         self.assertEquals(decode_field(msg, 'string'), u'hello!')
         self.assertEquals(decode_field(msg, 'bytes'), b'hello!')
+        self.assertEquals(decode_field(msg, 'hex'), u'68656c6c6f21')
 
         msg, field, wire = messages[1]
         self.assertEquals(field, 7)
@@ -136,7 +137,36 @@ class TestUnits(unittest.TestCase):
         self.assertEqual(decode_field(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF', 'sfixed64'), -1)
         self.assertEqual(decode_field(b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF', 'fixed64'), 0xffffffffffffffff)
 
+    def test_parse_with_spec(self):
+        msg_string = b'\x0A\x06hello!\x39\xAE\xFA\x90\x14\x00\x00\x00\x00\x18\x64\x45\x9C\xFF\xFF\xFF\x55\xd8\x0f\x49\x40'
+        spec = {
+            '1': ['string'],
+            '8': 'sfixed32'
+        }
+        msg = parse_bytes_with_spec(msg_string, spec)
+        self.assertEqual(msg, { '1': ['hello!'], '8': -100 })
 
+        msg_string = encode_message(6, 'bytes', b'\x45\x9C\xFF\xFF\xFF')
+        spec = {
+            '6': { '8': 'sfixed32' }
+        }
+        msg = parse_bytes_with_spec(msg_string, spec)
+        self.assertEqual(msg, { '6': { '8': -100 } })
+
+        self.assertEqual(parse_bytes_with_spec(b'\xFF\xFF\xFF\xFF', 'sfixed32'), -1)
+
+    def test_parse_spec(self):
+        self.assertEqual(parse_spec('float'), 'float')
+        self.assertEqual(parse_spec('1:float,2:int'), { '1': 'float', '2': 'int' })
+        self.assertEqual(parse_spec('1:[string],2:{1:double,3:[1:fixed64]}'), {
+            '1': ['string'],
+            '2': {
+                '1': 'double',
+                '3': [{
+                    '1': 'fixed64'
+                }]
+            }
+        })
 
 class TestCommandLine(unittest.TestCase):
     def test_bash(self):
@@ -169,6 +199,21 @@ class TestCommandLine(unittest.TestCase):
         self.assertEqual(getOutputBash("pw int 0"), b'')
         self.assertEqual(getOutputBash("pw string ''"), b'')
         self.assertEqual(getOutputBash("pw 2 int 0"), b'')
+
+        self.assertEqual(getOutputBash(
+            """((pw 3 string hello) && (pw 2 int 100 | pw 2 bytes)) |
+            pw-decode '3:string,2:{2:int}'""").strip(),
+            b'{"2": {"2": 100}, "3": "hello"}')
+
+        self.assertEqual(getOutputBash(
+            """((pw 3 double 3.2345) | pw bytes) |
+            pw-decode 1:hex --pretty""").strip(),
+            b'{\n  "1": "19c74b378941e00940"\n}')
+
+        self.assertEqual(getOutputBash(
+            """pw double 3.2345 |
+            pw-decode 1:double""").strip(),
+            b'{"1": 3.2345}')
 
 if __name__ == '__main__':
     unittest.main()

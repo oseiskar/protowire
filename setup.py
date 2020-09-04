@@ -42,6 +42,7 @@ setup(
             'pw=protowire.commandline:pw',
             'pw-grpc-frame=protowire.commandline:grpc_frame',
             'pw-grpc-client=protowire.commandline:grpc_client',
+            'pw-decode=protowire.commandline:pw_decode'
         ],
     },
 
