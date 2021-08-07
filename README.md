@@ -1,6 +1,6 @@
 
 
-# Protowire [![Build Status](https://travis-ci.org/oseiskar/protowire.svg?branch=master)](https://travis-ci.org/oseiskar/protowire) [![PyPI](https://img.shields.io/pypi/v/protowire.svg)](https://pypi.python.org/pypi/protowire)
+# Protowire [![PyPI](https://img.shields.io/pypi/v/protowire.svg)](https://pypi.python.org/pypi/protowire)
 
 Write protobuf messages from the command line:
 
