@@ -206,6 +206,11 @@ class TestCommandLine(unittest.TestCase):
             b'{"2": {"2": 100}, "3": "hello"}')
 
         self.assertEqual(getOutputBash(
+            """pw 3 sint32 123|
+            pw-decode '3:sint32'""").strip(),
+            b'{"3": 123}')
+
+        self.assertEqual(getOutputBash(
             """((pw 3 double 3.2345) | pw bytes) |
             pw-decode 1:hex --pretty""").strip(),
             b'{\n  "1": "19c74b378941e00940"\n}')
